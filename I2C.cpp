@@ -60,3 +60,9 @@ void I2C::send(const uint8_t __data) {
         *port_write &= 0xff ^ SCL_mask;
     }
 }
+
+void I2C::set_address(const uint8_t RW) {
+    const uint8_t sending_data = (device_address << 1) + RW;
+    send(sending_data);
+    return;
+}
