@@ -2,6 +2,7 @@
 #define F_CPU 8000000UL
 #endif
 #include "I2C.h"
+#include "MSB.h"
 #include <util/delay.h>
 
 I2C::I2C(volatile uint8_t *PORT_W, volatile uint8_t *PORT_R, volatile uint8_t *PORT_MODE, uint8_t __SDA, uint8_t __SCL, uint8_t __device_address)
@@ -46,7 +47,16 @@ void I2C::end() {
 
 void I2C::send(const uint8_t __data) {
     uint8_t len = 7;
+    uint8_t MSB_data = MSB_lookup_table[__data];
     while (len --> 0) {
-        
+        if (MSB_data % 2) {
+            *port_write |= SDA_mask;
+        } else {
+            *port_write &= 0xff ^ SDA_mask;
+        }
+        *port_write |= SCL_mask;
+        MSB_data /= 2;
+        _delay_us(3);
+        *port_write &= 0xff ^ SCL_mask;
     }
 }

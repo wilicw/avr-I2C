@@ -3,7 +3,7 @@ MCU=m32u4
 CCMCU=atmega32u4
 LINKER=avr-objcopy
 FLAGS=-mmcu=$(CCMCU) -std=gnu++17 -Os
-OBJS=main.o I2C.o
+OBJS=main.o MSB.o I2C.o
 MAIN=main.bin
 
 all: clean $(OBJS) bin hex size
