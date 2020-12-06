@@ -1,0 +1,12 @@
+avr-g++
+-nostdinc
+-nostdinc++
+-mccu
+atmega32u4
+-isystem/usr/lib/avr/include/
+-isystem/usr/local/include/
+-isystem/usr/lib/gcc/avr/5.4.0/include/
+-D__AVR_ATmega32U4__
+-D__flash
+%h -x c++-header
+fPIC
