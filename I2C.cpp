@@ -9,30 +9,31 @@ I2C::I2C(volatile uint8_t *PORT_W, volatile uint8_t *PORT_R, volatile uint8_t *P
     : port_write(PORT_W), port_read(PORT_R), port_mode(PORT_MODE), SCL(__SCL), SDA(__SDA), device_address(__device_address) {
         SCL_mask = 1 << __SCL;
         SDA_mask = 1 << __SDA;
-        *port_mode |= SCL_mask;
-        *port_mode |= SDA_mask;
+        *port_mode |= SCL_mask; // set SCL as output port
+        *port_mode &= ~SDA_mask; // set SDA as open drain
+        // set SCL SDA to 1
         *port_write |= SCL_mask;
         *port_write |= SDA_mask;
 }
 
 void I2C::begin() {
     /* start condition */
-    *port_write &= 0xff ^ SDA_mask;
+    *port_write &= SDA_mask;
     _delay_us(5);
-    *port_write &= 0xff ^ SCL_mask;
+    *port_write &= SCL_mask;
     _delay_us(5);
 }
 
 bool I2C::isACK() {
     bool state = true;
     *port_write |= SCL_mask;
-    *port_mode &= 0xff ^ SDA_mask; // change SDA to read mode (0)
+    *port_mode &= ~SDA_mask; // change SDA to read mode (0)
     _delay_us(3);
     if (*port_read & SDA_mask) {
         state = false;
     }
     _delay_us(3);
-    *port_write &= 0xff ^ SCL_mask;
+    *port_write &= ~SCL_mask;
     *port_mode |= SDA_mask; // change SDA to write mode (1)
     return state;
 }
@@ -52,12 +53,12 @@ void I2C::send(const uint8_t __data) {
         if (MSB_data % 2) {
             *port_write |= SDA_mask;
         } else {
-            *port_write &= 0xff ^ SDA_mask;
+            *port_write &= SDA_mask;
         }
         *port_write |= SCL_mask;
         MSB_data /= 2;
         _delay_us(3);
-        *port_write &= 0xff ^ SCL_mask;
+        *port_write &= SCL_mask;
     }
 }
 
