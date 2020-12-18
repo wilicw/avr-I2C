@@ -1,5 +1,5 @@
-#ifndef F_CPU
-#define F_CPU 8000000UL
+#ifndef I2C_H
+#define I2C_H
 #endif
 #include "I2C.h"
 #include "MSB.h"
