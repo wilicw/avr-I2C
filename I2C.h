@@ -14,7 +14,7 @@ public:
     I2C(volatile uint8_t *, volatile uint8_t *, volatile uint8_t *, uint8_t, uint8_t, uint8_t);
     void begin();
     bool isACK();
-    void send(uint8_t);
+    bool send(uint8_t);
     void end();
     void set_address(const uint8_t);
 };

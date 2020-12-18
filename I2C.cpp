@@ -7,59 +7,62 @@
 
 I2C::I2C(volatile uint8_t *PORT_W, volatile uint8_t *PORT_R, volatile uint8_t *PORT_MODE, uint8_t __SDA, uint8_t __SCL, uint8_t __device_address)
     : port_write(PORT_W), port_read(PORT_R), port_mode(PORT_MODE), SCL(__SCL), SDA(__SDA), device_address(__device_address) {
-        SCL_mask = 1 << __SCL;
-        SDA_mask = 1 << __SDA;
-        *port_mode |= SCL_mask; // set SCL as output port
-        *port_mode &= ~SDA_mask; // set SDA as open drain
-        // set SCL SDA to 1
-        *port_write |= SCL_mask;
-        *port_write |= SDA_mask;
+        SCL_mask = _BV(__SCL);
+        SDA_mask = _BV(__SDA);
+        *port_write &= ~SCL_mask;
+        *port_mode &= ~SCL_mask;
+        *port_write &= ~SDA_mask;
+        *port_mode &= ~SDA_mask;
 }
 
 void I2C::begin() {
     /* start condition */
-    *port_write &= SDA_mask;
-    _delay_us(5);
-    *port_write &= SCL_mask;
-    _delay_us(5);
-}
-
-bool I2C::isACK() {
-    bool state = true;
-    *port_write |= SCL_mask;
-    *port_mode &= ~SDA_mask; // change SDA to read mode (0)
-    _delay_us(3);
-    if (*port_read & SDA_mask) {
-        state = false;
-    }
-    _delay_us(3);
-    *port_write &= ~SCL_mask;
-    *port_mode |= SDA_mask; // change SDA to write mode (1)
-    return state;
+    // Set SDA to LOW
+    *port_mode |= SDA_mask;
+    // Set SCL to LOW
+    *port_mode |= SCL_mask;
 }
 
 void I2C::end() {
     /* stop condition */
-    *port_write |= SCL_mask;
-    _delay_us(5);
-    *port_write |= SDA_mask;
-    _delay_us(5);
+    // Set ACK to HIGH
+    *port_mode &= ~SCL_mask;
+    // Set SDA to HIGH
+    *port_mode &= ~SDA_mask;
 }
 
-void I2C::send(const uint8_t __data) {
-    uint8_t len = 7;
+bool I2C::isACK() {
+    bool state = true;
+    *port_mode &= ~SDA_mask;
+    // Set SCL to HIGH
+    *port_mode &= ~SCL_mask;
+    // ACK means SDA pull to LOW
+    if (*port_read & SDA_mask) {
+        state = false;
+    }
+    // Set SCL to LOW
+    *port_mode |= SCL_mask;
+    return state;
+}
+
+bool I2C::send(const uint8_t __data) {
+    uint8_t len = 8;
     uint8_t MSB_data = MSB_lookup_table[__data];
     while (len --> 0) {
+        // Set SCL to LOW
+        *port_mode |= SCL_mask;
         if (MSB_data % 2) {
-            *port_write |= SDA_mask;
+            *port_mode &= ~SDA_mask;
         } else {
-            *port_write &= SDA_mask;
+            *port_mode |= SDA_mask;
         }
-        *port_write |= SCL_mask;
         MSB_data /= 2;
-        _delay_us(3);
-        *port_write &= SCL_mask;
+        // Set SCL to HIGH
+        *port_mode &= ~SCL_mask;
     }
+    *port_mode |= SCL_mask;
+    *port_mode |= SDA_mask;
+    return isACK();
 }
 
 void I2C::set_address(const uint8_t RW) {
