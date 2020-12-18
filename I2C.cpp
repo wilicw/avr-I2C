@@ -31,17 +31,22 @@ void I2C::end() {
     *port_mode &= ~SDA_mask;
 }
 
+void I2C::_to_default() {
+    // Set SCL and SDA to LOW
+    *port_mode |= SCL_mask;
+    *port_mode |= SDA_mask;
+}
+
 bool I2C::isACK() {
     bool state = true;
+    // Set SCL and SDA to high-impedance
     *port_mode &= ~SDA_mask;
-    // Set SCL to HIGH
     *port_mode &= ~SCL_mask;
     // ACK means SDA pull to LOW
     if (*port_read & SDA_mask) {
         state = false;
     }
-    // Set SCL to LOW
-    *port_mode |= SCL_mask;
+    _to_default();
     return state;
 }
 
@@ -57,11 +62,10 @@ bool I2C::send(const uint8_t __data) {
             *port_mode |= SDA_mask;
         }
         MSB_data /= 2;
-        // Set SCL to HIGH
+        // Set SCL to high impedance
         *port_mode &= ~SCL_mask;
     }
-    *port_mode |= SCL_mask;
-    *port_mode |= SDA_mask;
+    _to_default();
     return isACK();
 }
 

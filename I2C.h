@@ -9,6 +9,7 @@ private:
     volatile uint8_t *port_read;
     volatile uint8_t *port_mode;
     uint8_t SCL, SDA, SCL_mask, SDA_mask, device_address;
+    void _to_default();
 
 public:
     I2C(volatile uint8_t *, volatile uint8_t *, volatile uint8_t *, uint8_t, uint8_t, uint8_t);
